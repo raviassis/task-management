@@ -51,43 +51,42 @@ describe('OrganizationsService', () => {
       const dto = { name: 'Org2', parentId: 10 };
       const userId = 1;
 
-      // Mock findOne to return a parent org without sub-organization parent
-      const parentOrg = { id: 10, isSubOrganization: () => false };
-      jest.spyOn(service, 'findOne').mockResolvedValue(parentOrg as any);
+      const parentOrg = { id: 10, isSubOrganization: () => false } as Organization;
+
+      repo.findOne
+        .mockResolvedValue(parentOrg);
+
       repo.save.mockImplementation(async (org) => org as Organization);
 
       const org = await service.create(dto, userId);
 
-      expect(service.findOne).toHaveBeenCalledWith(dto.parentId);
       expect(org.parent).toBe(parentOrg);
       expect(repo.save).toHaveBeenCalledWith(org);
     });
 
     it('should throw error if trying to set self as parent', async () => {
-      const dto = { name: 'Org3', parentId: 1 };
-      const userId = 1;
+      const dto = { name: 'Org2', parentId: 10 };
+      const orgId = 10;
 
-      // Create organization with id 1
-      const org = new Organization();
-      org.id = 1;
-      repo.save.mockResolvedValue(org);
+      const parentOrg = { id: 10, isSubOrganization: () => false } as Organization;
 
-      // Override findOne to return org with id=1
-      jest.spyOn(service, 'findOne').mockResolvedValue(org);
+      repo.findOne
+        .mockResolvedValue(parentOrg);
 
-      // Call setParentOrganization directly to test error
-      await expect(service['setParentOrganization'](1, org)).rejects.toThrow(BadRequestException);
+      repo.save.mockImplementation(async (org) => org as Organization);
+
+      expect(repo.save).not.toHaveBeenCalled();
+      await expect(service.update(orgId, dto)).rejects.toThrow(BadRequestException);
     });
 
     it('should throw error if parent is a sub-organization', async () => {
-      const dto = { name: 'Org4', parentId: 2 };
-      const userId = 1;
-
       const parentOrg = {
         id: 2,
         isSubOrganization: () => true,
-      };
-      jest.spyOn(service, 'findOne').mockResolvedValue(parentOrg as any);
+      } as Organization;
+
+      repo.findOne
+        .mockResolvedValue(parentOrg);
 
       const org = new Organization();
       org.id = 3;
@@ -97,22 +96,30 @@ describe('OrganizationsService', () => {
   });
 
   describe('findAll', () => {
-    it('should call find with IsNull parent', async () => {
-      repo.find.mockResolvedValue(['org1', 'org2'] as any);
+    it('should list organizations', async () => {
+      const orgs = [
+        {
+          name: 'org1',
+        },
+        {
+          name: 'org2',
+        }
+      ] as Organization[];
+      repo.find.mockResolvedValue(orgs);
 
       const result = await service.findAll();
 
       expect(repo.find).toHaveBeenCalledWith({
-        where: { parent: expect.anything() }, // IsNull is a function, can't check directly here
+        where: { parent: expect.anything() },
       });
-      expect(result).toEqual(['org1', 'org2']);
+      expect(result).toEqual(orgs);
     });
   });
 
   describe('findOne', () => {
     it('should return org if found', async () => {
-      const org = { id: 1, name: 'Org1' };
-      repo.findOne.mockResolvedValue(org as any);
+      const org = { id: 1, name: 'Org1' } as Organization;
+      repo.findOne.mockResolvedValue(org);
 
       const result = await service.findOne(1);
 
@@ -132,8 +139,9 @@ describe('OrganizationsService', () => {
       const org = new Organization();
       org.id = 1;
       org.name = 'OldName';
-      org.parent = null;
-      jest.spyOn(service, 'findOne').mockResolvedValue(org);
+
+      repo.findOne
+        .mockResolvedValue(org);
       repo.save.mockImplementation(async (o) => o as Organization);
 
       const updateDto = { name: 'NewName' };
@@ -146,8 +154,11 @@ describe('OrganizationsService', () => {
     it('should set parent to null when parentId is null', async () => {
       const org = new Organization();
       org.id = 1;
-      org.parent = { id: 10 } as any;
-      jest.spyOn(service, 'findOne').mockResolvedValue(org);
+      org.parent = { id: 10 } as Organization;
+
+      repo.findOne
+        .mockResolvedValue(org);
+      
       repo.save.mockImplementation(async (o) => o as Organization);
 
       const updateDto = { parentId: null };
@@ -160,14 +171,13 @@ describe('OrganizationsService', () => {
     it('should set new parent when parentId provided', async () => {
       const org = new Organization();
       org.id = 1;
-      org.parent = null;
-      jest.spyOn(service, 'findOne').mockResolvedValue(org);
+      
+      const newParent = new Organization();
+      newParent.id = 20;
 
-      const newParent = { id: 20, isSubOrganization: () => false };
-      jest.spyOn(service, 'findOne').mockImplementation((id: number) => {
-        if (id === 20) return Promise.resolve(newParent as any);
-        return Promise.resolve(org);
-      });
+      repo.findOne
+        .mockResolvedValueOnce(org)
+        .mockResolvedValue(newParent);
       repo.save.mockImplementation(async (o) => o as Organization);
 
       const updateDto = { parentId: 20 };
@@ -181,7 +191,9 @@ describe('OrganizationsService', () => {
   describe('remove', () => {
     it('should find and remove organization', async () => {
       const org = new Organization();
-      jest.spyOn(service, 'findOne').mockResolvedValue(org);
+
+      repo.findOne
+        .mockResolvedValueOnce(org);
       repo.remove.mockResolvedValue(undefined);
 
       await service.remove(1);
