@@ -46,4 +46,8 @@ export class UsersService {
     }
     return this.mapUserToUserDto(user);
   }
+
+  findByEmail(email: string): Promise<User> {
+    return this.userRepository.findOneBy({ email });
+  }
 }
