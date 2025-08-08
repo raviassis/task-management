@@ -7,7 +7,7 @@ export class Organization extends BaseEntity {
   @Column()
   name: string;
 
-  @ManyToOne(() => Organization, { nullable: true })
+  @ManyToOne(() => Organization, { nullable: true, onDelete: 'CASCADE' })
   parent: Organization;
 
   @OneToMany(() => Organization, subOrg => subOrg.parent)

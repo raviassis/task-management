@@ -10,10 +10,10 @@ export class OrganizationUser {
   @PrimaryColumn()
   organizationId: number;
 
-  @ManyToOne(() => User, (user) => user.organizations)
+  @ManyToOne(() => User, (user) => user.organizations, { onDelete: 'CASCADE' })
   user: User;
 
-  @ManyToOne(() => Organization, (organization) => organization.members)
+  @ManyToOne(() => Organization, (organization) => organization.members, { onDelete: 'CASCADE' })
   organization: Organization;
 
   @Column({ type: 'text', enum: Object.values(RoleEnum), default: RoleEnum.Viewer })

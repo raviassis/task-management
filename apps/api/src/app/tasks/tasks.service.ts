@@ -43,6 +43,5 @@ export class TasksService {
   async remove(id: number): Promise<void> {
     const task = await this.findOne(id);
     await this.taskRepository.remove(task);
-    return
   }
 }
