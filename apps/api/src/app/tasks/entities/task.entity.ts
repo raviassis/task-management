@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, Entity } from "typeorm";
 import { BaseEntity } from "../../common/entities/base.entity";
 
 export const TaskStatusEnum =  {
@@ -17,16 +17,4 @@ export class Task extends BaseEntity {
   description: string;
   @Column({ enum: TaskStatusEnum, default: TaskStatusEnum.TODO })
   status: TaskStatusEnum;
-
-  // constructor({
-  //   title,
-  //   description,
-  // }: {
-  //   title: string,
-  //   description: string
-  // }) {
-  //   super();
-  //   this.title = title;
-  //   this.description = description;
-  // }
 }
