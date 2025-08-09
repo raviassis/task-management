@@ -1,4 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { In, IsNull, Repository } from 'typeorm';
@@ -16,8 +21,11 @@ export class OrganizationsService {
     private readonly organizationRepository: Repository<Organization>,
     @InjectRepository(OrganizationUser)
     private readonly organizationUserRepositry: Repository<OrganizationUser>
-  ){}
-  async create(createOrganizationDto: CreateOrganizationDto, userId: number): Promise<Organization> {
+  ) {}
+  async create(
+    createOrganizationDto: CreateOrganizationDto,
+    userId: number
+  ): Promise<Organization> {
     const orgUser = new OrganizationUser();
     orgUser.userId = userId;
     orgUser.role = RoleEnum.Owner;
@@ -25,30 +33,48 @@ export class OrganizationsService {
     const org = new Organization();
     org.name = createOrganizationDto.name;
     org.members = [orgUser];
+    org.subOrganizations = [];
 
     if (createOrganizationDto.parentId != null) {
-      await this.setParentOrganization(createOrganizationDto.parentId, org, userId);
+      await this.setParentOrganization(
+        createOrganizationDto.parentId,
+        org,
+        userId
+      );
     }
     return this.organizationRepository.save(org);
   }
 
-  private async setParentOrganization(parentId: number, org: Organization, userId: number) {
-    if (org.id === parentId) throw new BadRequestException('An organization cannot be parent of itself.');
+  private async setParentOrganization(
+    parentId: number,
+    org: Organization,
+    userId: number
+  ) {
+    if (org.id === parentId)
+      throw new BadRequestException(
+        'An organization cannot be parent of itself.'
+      );
     const parentOrg = await this.findOne(parentId, userId);
-    this.checkOrganizationPermission(parentOrg, userId, PermissionsEnum.SUB_ORGANIZATION_CREATE);
+    this.checkOrganizationPermission(
+      parentOrg,
+      userId,
+      PermissionsEnum.SUB_ORGANIZATION_CREATE
+    );
     if (parentOrg.isSubOrganization() || org.subOrganizations.length > 0)
-      throw new BadRequestException('Cannot create a sub-organization within another sub-organization');
+      throw new BadRequestException(
+        'Cannot create a sub-organization within another sub-organization'
+      );
     org.parent = parentOrg;
   }
 
   findAll(userId: number) {
-    return this.organizationRepository.find({ 
+    return this.organizationRepository.find({
       where: {
         parent: IsNull(),
         members: {
           userId,
-          role: In([RoleEnum.Owner, RoleEnum.Admin, RoleEnum.Viewer])
-        }
+          role: In([RoleEnum.Owner, RoleEnum.Admin, RoleEnum.Viewer]),
+        },
       },
     });
   }
@@ -68,8 +94,9 @@ export class OrganizationsService {
       ])
       .leftJoinAndSelect('organization.subOrganizations', 'subOrg')
       .where('organization.id = :id', { id })
-      .andWhere(qb => {
-        const subQuery = qb.subQuery()
+      .andWhere((qb) => {
+        const subQuery = qb
+          .subQuery()
           .select('ou.organizationId')
           .from('organization_users', 'ou')
           .where('ou.organizationId = :id')
@@ -80,43 +107,76 @@ export class OrganizationsService {
       .setParameters({ id, userId })
       .getOne();
     if (!org) throw new NotFoundException(`Organization id ${id} not found`);
-    this.checkOrganizationPermission(org, userId, PermissionsEnum.ORGANIZATION_VIEW);
+    this.checkOrganizationPermission(
+      org,
+      userId,
+      PermissionsEnum.ORGANIZATION_VIEW
+    );
     return org;
   }
 
-  private checkOrganizationPermission(org: Organization, userId: number, permission: PermissionsEnum) {
-    const member = org.members
-      .find(m => m.userId === userId);
+  private checkOrganizationPermission(
+    org: Organization,
+    userId: number,
+    permission: PermissionsEnum
+  ) {
+    const member = org.members.find((m) => m.userId === userId);
     if (!member || !hasPermission(member.role, permission)) {
       throw new ForbiddenException(`Missing permission: ${permission}`);
     }
   }
 
-  async update(id: number, updateOrganizationDto: UpdateOrganizationDto, userId: number) {
+  async update(
+    id: number,
+    updateOrganizationDto: UpdateOrganizationDto,
+    userId: number
+  ) {
     const org = await this.findOne(id, userId);
-    this.checkOrganizationPermission(org, userId, PermissionsEnum.ORGANIZATION_EDIT);
-    if (updateOrganizationDto.name != null) org.name = updateOrganizationDto.name;
+    this.checkOrganizationPermission(
+      org,
+      userId,
+      PermissionsEnum.ORGANIZATION_EDIT
+    );
+    if (updateOrganizationDto.name != null)
+      org.name = updateOrganizationDto.name;
     if ('parentId' in updateOrganizationDto) {
       if (updateOrganizationDto.parentId === null) {
         org.parent = null;
       } else {
-        await this.setParentOrganization(updateOrganizationDto.parentId, org, userId);
-      } 
+        await this.setParentOrganization(
+          updateOrganizationDto.parentId,
+          org,
+          userId
+        );
+      }
     }
     return this.organizationRepository.save(org);
   }
 
   async remove(id: number, userId: number) {
     const org = await this.findOne(id, userId);
-    this.checkOrganizationPermission(org, userId, PermissionsEnum.ORGANIZATION_DELETE);
+    this.checkOrganizationPermission(
+      org,
+      userId,
+      PermissionsEnum.ORGANIZATION_DELETE
+    );
     await this.organizationRepository.remove(org);
   }
 
-  async updateMember(userId: number, id: number, memberId: number, updateOrganizationDto: UpdateMemberDto) {
+  async updateMember(
+    userId: number,
+    id: number,
+    memberId: number,
+    updateOrganizationDto: UpdateMemberDto
+  ) {
     const org = await this.findOne(id, userId);
-    this.checkOrganizationPermission(org, userId, PermissionsEnum.ORGANIZATION_INVITE);
-    let member = org.members.find(m => m.userId === memberId);
-    
+    this.checkOrganizationPermission(
+      org,
+      userId,
+      PermissionsEnum.ORGANIZATION_INVITE
+    );
+    let member = org.members.find((m) => m.userId === memberId);
+
     if (!member) {
       member = new OrganizationUser();
       member.userId = memberId;
@@ -130,9 +190,17 @@ export class OrganizationsService {
 
   async deleteMember(userId: number, id: number, memberId: number) {
     const org = await this.findOne(id, userId);
-    this.checkOrganizationPermission(org, userId, PermissionsEnum.ORGANIZATION_INVITE);
-    const member = org.members.find(m => m.userId === memberId);
-    if (!org.members.some(m => m.userId !== memberId && m.role === RoleEnum.Owner)) 
+    this.checkOrganizationPermission(
+      org,
+      userId,
+      PermissionsEnum.ORGANIZATION_INVITE
+    );
+    const member = org.members.find((m) => m.userId === memberId);
+    if (
+      !org.members.some(
+        (m) => m.userId !== memberId && m.role === RoleEnum.Owner
+      )
+    )
       throw new BadRequestException('Organization needs at least one owner.');
     await this.organizationUserRepositry.remove(member);
   }
