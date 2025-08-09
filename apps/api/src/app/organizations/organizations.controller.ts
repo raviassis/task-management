@@ -30,8 +30,8 @@ export class OrganizationsController {
     return this.organizationsService.findAll(req.user.sub);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string, @Request() req) {
+  @Get(':organizationId')
+  findOne(@Param('organizationId') id: string, @Request() req) {
     return this.organizationsService.findOne(+id, req.user.sub);
   }
 
