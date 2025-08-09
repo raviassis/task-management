@@ -4,7 +4,7 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UnauthorizedException } from '@nestjs/common';
-import { LoginDto } from './dtos/login.dto';
+import { LoginDto } from '@task-management/data';
 import { User } from '../users/entities/user.entity';
 
 describe('AuthService', () => {
@@ -61,14 +61,18 @@ describe('AuthService', () => {
     it('should throw UnauthorizedException if user not found', async () => {
       usersService.findByEmail.mockResolvedValue(null);
 
-      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
+      await expect(service.login(loginDto)).rejects.toThrow(
+        UnauthorizedException
+      );
       expect(usersService.findByEmail).toHaveBeenCalledWith(loginDto.email);
     });
 
     it('should throw UnauthorizedException if password does not match', async () => {
       usersService.findByEmail.mockResolvedValue(user);
-      const wrongLogin = {...loginDto, password: 'wrong'}
-      await expect(service.login(wrongLogin)).rejects.toThrow(UnauthorizedException);
+      const wrongLogin = { ...loginDto, password: 'wrong' };
+      await expect(service.login(wrongLogin)).rejects.toThrow(
+        UnauthorizedException
+      );
     });
 
     it('should return access_token if login is successful', async () => {
@@ -78,7 +82,10 @@ describe('AuthService', () => {
       const result = await service.login(loginDto);
 
       expect(usersService.findByEmail).toHaveBeenCalledWith(loginDto.email);
-      expect(jwtService.signAsync).toHaveBeenCalledWith({ sub: user.id, email: user.email });
+      expect(jwtService.signAsync).toHaveBeenCalledWith({
+        sub: user.id,
+        email: user.email,
+      });
       expect(result).toEqual({ access_token: 'jwt-token' });
     });
   });
