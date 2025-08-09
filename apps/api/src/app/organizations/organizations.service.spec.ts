@@ -6,6 +6,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { OrganizationUser } from './entities/organization-user.entity';
 import { RoleEnum } from '../rbac/role';
+import { OrganizationPermissionService } from './organization-permissions.service';
 
 describe('OrganizationsService', () => {
   let service: OrganizationsService;
@@ -45,6 +46,12 @@ describe('OrganizationsService', () => {
           useValue: {
             save: jest.fn(),
             remove: jest.fn(),
+          },
+        },
+        {
+          provide: OrganizationPermissionService,
+          useValue: {
+            checkOrganizationPermission: jest.fn(),
           },
         },
       ],

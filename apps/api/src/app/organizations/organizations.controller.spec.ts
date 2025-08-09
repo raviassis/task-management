@@ -4,6 +4,7 @@ import { OrganizationsService } from './organizations.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Organization } from './entities/organization.entity';
 import { OrganizationUser } from './entities/organization-user.entity';
+import { OrganizationPermissionService } from './organization-permissions.service';
 
 describe('OrganizationsController', () => {
   let controller: OrganizationsController;
@@ -40,6 +41,12 @@ describe('OrganizationsController', () => {
           useValue: {
             save: jest.fn(),
             remove: jest.fn(),
+          },
+        },
+        {
+          provide: OrganizationPermissionService,
+          useValue: {
+            checkOrganizationPermission: jest.fn(),
           },
         },
       ],
