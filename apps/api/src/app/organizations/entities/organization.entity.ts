@@ -13,7 +13,7 @@ export class Organization extends BaseEntity {
   @OneToMany(() => Organization, subOrg => subOrg.parent)
   subOrganizations: Organization[];
 
-  @OneToMany(() => OrganizationUser, orgUser => orgUser.organization, { cascade: true })
+  @OneToMany(() => OrganizationUser, orgUser => orgUser.organization, { cascade: true, onDelete: 'CASCADE' })
   members: OrganizationUser[];
 
   public isSubOrganization(): boolean {
