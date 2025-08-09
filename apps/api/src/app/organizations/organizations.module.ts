@@ -10,5 +10,6 @@ import { OrganizationPermissionService } from './organization-permissions.servic
   imports: [TypeOrmModule.forFeature([Organization, OrganizationUser])],
   controllers: [OrganizationsController],
   providers: [OrganizationsService, OrganizationPermissionService],
+  exports: [OrganizationPermissionService, OrganizationsService]
 })
 export class OrganizationsModule {}
