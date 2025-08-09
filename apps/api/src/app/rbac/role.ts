@@ -24,3 +24,7 @@ export const RolePermissionsMap = {
   ],
 }
 
+export function hasPermission(role: RoleEnum, permission: PermissionsEnum): boolean {
+  return RolePermissionsMap[role].some(p => p === permission);
+}
+
