@@ -10,8 +10,23 @@ import { RoleEnum } from '../rbac/role';
 describe('OrganizationsService', () => {
   let service: OrganizationsService;
   let repo: jest.Mocked<Repository<Organization>>;
+  let mockQueryBuilder: any;
 
   beforeEach(async () => {
+    mockQueryBuilder = {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      leftJoin: jest.fn().mockReturnThis(),
+      addSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      setParameters: jest.fn().mockReturnThis(),
+      subQuery: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      from: jest.fn().mockReturnThis(),
+      getQuery: jest.fn().mockReturnValue('subquery'),
+      getOne: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OrganizationsService,
@@ -22,6 +37,14 @@ describe('OrganizationsService', () => {
             find: jest.fn(),
             findOne: jest.fn(),
             remove: jest.fn(),
+            createQueryBuilder: jest.fn(() => mockQueryBuilder),
+          },
+        },
+        {
+          provide: getRepositoryToken(OrganizationUser),
+          useValue: {
+            save: jest.fn(),
+            remove: jest.fn(),
           },
         },
       ],
@@ -29,6 +52,10 @@ describe('OrganizationsService', () => {
 
     service = module.get<OrganizationsService>(OrganizationsService);
     repo = module.get(getRepositoryToken(Organization));
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('create', () => {
@@ -51,10 +78,14 @@ describe('OrganizationsService', () => {
       const dto = { name: 'Org2', parentId: 10 };
       const userId = 1;
 
-      const parentOrg = { id: 10, isSubOrganization: () => false } as Organization;
+      const parentOrg = {
+        id: 10,
+        isSubOrganization: () => false,
+        members: [{ userId: 1, role: RoleEnum.Owner }],
+        subOrganizations: [],
+      } as Organization;
 
-      repo.findOne
-        .mockResolvedValue(parentOrg);
+      mockQueryBuilder.getOne.mockResolvedValue(parentOrg);
 
       repo.save.mockImplementation(async (org) => org as Organization);
 
@@ -68,30 +99,39 @@ describe('OrganizationsService', () => {
       const dto = { name: 'Org2', parentId: 10 };
       const orgId = 10;
 
-      const parentOrg = { id: 10, isSubOrganization: () => false } as Organization;
+      const org = {
+        id: 10,
+        isSubOrganization: () => false,
+        members: [{ userId: 1, role: RoleEnum.Owner }],
+        subOrganizations: [],
+      } as Organization;
 
-      repo.findOne
-        .mockResolvedValue(parentOrg);
+      mockQueryBuilder.getOne.mockResolvedValue(org);
 
       repo.save.mockImplementation(async (org) => org as Organization);
 
       expect(repo.save).not.toHaveBeenCalled();
-      await expect(service.update(orgId, dto)).rejects.toThrow(BadRequestException);
+      await expect(service.update(orgId, dto, 1)).rejects.toThrow(
+        BadRequestException
+      );
     });
 
     it('should throw error if parent is a sub-organization', async () => {
       const parentOrg = {
         id: 2,
         isSubOrganization: () => true,
+        members: [{ userId: 1, role: RoleEnum.Owner }],
       } as Organization;
 
-      repo.findOne
-        .mockResolvedValue(parentOrg);
+      mockQueryBuilder.getOne.mockResolvedValue(parentOrg);
 
       const org = new Organization();
       org.id = 3;
+      org.subOrganizations = [];
 
-      await expect(service['setParentOrganization'](2, org)).rejects.toThrow(BadRequestException);
+      await expect(service['setParentOrganization'](2, org, 1)).rejects.toThrow(
+        BadRequestException
+      );
     });
   });
 
@@ -103,14 +143,20 @@ describe('OrganizationsService', () => {
         },
         {
           name: 'org2',
-        }
+        },
       ] as Organization[];
       repo.find.mockResolvedValue(orgs);
 
-      const result = await service.findAll();
+      const result = await service.findAll(1);
 
       expect(repo.find).toHaveBeenCalledWith({
-        where: { parent: expect.anything() },
+        where: {
+          parent: expect.anything(),
+          members: expect.objectContaining({
+            userId: 1,
+            role: expect.anything(),
+          }),
+        },
       });
       expect(result).toEqual(orgs);
     });
@@ -118,19 +164,23 @@ describe('OrganizationsService', () => {
 
   describe('findOne', () => {
     it('should return org if found', async () => {
-      const org = { id: 1, name: 'Org1' } as Organization;
-      repo.findOne.mockResolvedValue(org);
+      const org = {
+        id: 1,
+        name: 'Org1',
+        members: [{ userId: 1, role: RoleEnum.Owner }],
+      } as Organization;
+      mockQueryBuilder.getOne.mockResolvedValue(org);
 
-      const result = await service.findOne(1);
+      const result = await service.findOne(1, 1);
 
-      expect(repo.findOne).toHaveBeenCalled();
+      expect(repo.createQueryBuilder).toHaveBeenCalled();
       expect(result).toBe(org);
     });
 
     it('should throw NotFoundException if org not found', async () => {
-      repo.findOne.mockResolvedValue(null);
+      mockQueryBuilder.getOne.mockResolvedValue(null);
 
-      await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(999, 1)).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -139,13 +189,13 @@ describe('OrganizationsService', () => {
       const org = new Organization();
       org.id = 1;
       org.name = 'OldName';
+      org.members = [{ userId: 1, role: RoleEnum.Owner }] as OrganizationUser[];
 
-      repo.findOne
-        .mockResolvedValue(org);
+      mockQueryBuilder.getOne.mockResolvedValue(org);
       repo.save.mockImplementation(async (o) => o as Organization);
 
       const updateDto = { name: 'NewName' };
-      const result = await service.update(1, updateDto);
+      const result = await service.update(1, updateDto, 1);
 
       expect(result.name).toBe('NewName');
       expect(repo.save).toHaveBeenCalledWith(org);
@@ -155,14 +205,14 @@ describe('OrganizationsService', () => {
       const org = new Organization();
       org.id = 1;
       org.parent = { id: 10 } as Organization;
+      org.members = [{ userId: 1, role: RoleEnum.Owner }] as OrganizationUser[];
 
-      repo.findOne
-        .mockResolvedValue(org);
-      
+      mockQueryBuilder.getOne.mockResolvedValue(org);
+
       repo.save.mockImplementation(async (o) => o as Organization);
 
       const updateDto = { parentId: null };
-      const result = await service.update(1, updateDto);
+      const result = await service.update(1, updateDto, 1);
 
       expect(result.parent).toBeNull();
       expect(repo.save).toHaveBeenCalledWith(org);
@@ -171,17 +221,23 @@ describe('OrganizationsService', () => {
     it('should set new parent when parentId provided', async () => {
       const org = new Organization();
       org.id = 1;
-      
+      org.members = [{ userId: 1, role: RoleEnum.Owner }] as OrganizationUser[];
+      org.subOrganizations = [];
+
       const newParent = new Organization();
       newParent.id = 20;
+      newParent.members = [
+        { userId: 1, role: RoleEnum.Owner },
+      ] as OrganizationUser[];
+      newParent.subOrganizations = [];
 
-      repo.findOne
+      mockQueryBuilder.getOne
         .mockResolvedValueOnce(org)
         .mockResolvedValue(newParent);
       repo.save.mockImplementation(async (o) => o as Organization);
 
       const updateDto = { parentId: 20 };
-      const result = await service.update(1, updateDto);
+      const result = await service.update(1, updateDto, 1);
 
       expect(result.parent).toBe(newParent);
       expect(repo.save).toHaveBeenCalledWith(org);
@@ -191,12 +247,12 @@ describe('OrganizationsService', () => {
   describe('remove', () => {
     it('should find and remove organization', async () => {
       const org = new Organization();
+      org.members = [{ userId: 1, role: RoleEnum.Owner }] as OrganizationUser[];
 
-      repo.findOne
-        .mockResolvedValueOnce(org);
+      mockQueryBuilder.getOne.mockResolvedValue(org);
       repo.remove.mockResolvedValue(undefined);
 
-      await service.remove(1);
+      await service.remove(1, 1);
 
       expect(repo.remove).toHaveBeenCalledWith(org);
     });
