@@ -7,13 +7,15 @@ import { jwtConstants } from './constants';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth.guard';
 
+console.log(jwtConstants)
+
 @Module({
   imports: [
     UsersModule,
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '1h' },
+      signOptions: { expiresIn: jwtConstants.expiresIn },
     }),
   ],
   providers: [
