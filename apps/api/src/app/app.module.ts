@@ -9,12 +9,13 @@ import { OrganizationsModule } from './organizations/organizations.module';
 
 @Module({
   imports: [
+    // TODO: add database setup for production
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: 'data/db.sqlite',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       autoLoadEntities: true,
-      synchronize: true, // TODO: development only
+      synchronize: true,
     }),
     TasksModule,
     UsersModule,

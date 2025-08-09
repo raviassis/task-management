@@ -11,6 +11,7 @@ import { OrganizationPermissionService } from './organization-permissions.servic
 describe('OrganizationsService', () => {
   let service: OrganizationsService;
   let repo: jest.Mocked<Repository<Organization>>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockQueryBuilder: any;
 
   beforeEach(async () => {
