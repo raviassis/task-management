@@ -107,7 +107,7 @@ describe('OrganizationsService', () => {
       ] as Organization[];
       repo.find.mockResolvedValue(orgs);
 
-      const result = await service.findAll();
+      const result = await service.findAll(1);
 
       expect(repo.find).toHaveBeenCalledWith({
         where: { parent: expect.anything() },
