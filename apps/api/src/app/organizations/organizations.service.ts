@@ -13,6 +13,7 @@ import { hasPermission, RoleEnum } from '../rbac/role';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PermissionsEnum } from '../rbac/permission';
 import { UpdateMemberDto } from './dto/update-member.dto';
+import { OrganizationPermissionService } from './organization-permissions.service';
 
 @Injectable()
 export class OrganizationsService {
@@ -20,7 +21,8 @@ export class OrganizationsService {
     @InjectRepository(Organization)
     private readonly organizationRepository: Repository<Organization>,
     @InjectRepository(OrganizationUser)
-    private readonly organizationUserRepositry: Repository<OrganizationUser>
+    private readonly organizationUserRepositry: Repository<OrganizationUser>,
+    private readonly permissionService: OrganizationPermissionService,
   ) {}
   async create(
     createOrganizationDto: CreateOrganizationDto,
@@ -55,10 +57,8 @@ export class OrganizationsService {
         'An organization cannot be parent of itself.'
       );
     const parentOrg = await this.findOne(parentId, userId);
-    this.checkOrganizationPermission(
-      parentOrg,
-      userId,
-      PermissionsEnum.SUB_ORGANIZATION_CREATE
+    await this.permissionService.checkOrganizationPermission(
+      parentOrg.id, userId, PermissionsEnum.SUB_ORGANIZATION_CREATE
     );
     if (parentOrg.isSubOrganization() || org.subOrganizations.length > 0)
       throw new BadRequestException(
@@ -107,10 +107,8 @@ export class OrganizationsService {
       .setParameters({ id, userId })
       .getOne();
     if (!org) throw new NotFoundException(`Organization id ${id} not found`);
-    this.checkOrganizationPermission(
-      org,
-      userId,
-      PermissionsEnum.ORGANIZATION_VIEW
+    await this.permissionService.checkOrganizationPermission(
+      org.id, userId, PermissionsEnum.ORGANIZATION_VIEW
     );
     return org;
   }
@@ -132,10 +130,8 @@ export class OrganizationsService {
     userId: number
   ) {
     const org = await this.findOne(id, userId);
-    this.checkOrganizationPermission(
-      org,
-      userId,
-      PermissionsEnum.ORGANIZATION_EDIT
+    await this.permissionService.checkOrganizationPermission(
+      org.id, userId, PermissionsEnum.ORGANIZATION_EDIT
     );
     if (updateOrganizationDto.name != null)
       org.name = updateOrganizationDto.name;
@@ -155,10 +151,8 @@ export class OrganizationsService {
 
   async remove(id: number, userId: number) {
     const org = await this.findOne(id, userId);
-    this.checkOrganizationPermission(
-      org,
-      userId,
-      PermissionsEnum.ORGANIZATION_DELETE
+    await this.permissionService.checkOrganizationPermission(
+      org.id, userId, PermissionsEnum.ORGANIZATION_DELETE
     );
     await this.organizationRepository.remove(org);
   }
@@ -170,10 +164,8 @@ export class OrganizationsService {
     updateOrganizationDto: UpdateMemberDto
   ) {
     const org = await this.findOne(id, userId);
-    this.checkOrganizationPermission(
-      org,
-      userId,
-      PermissionsEnum.ORGANIZATION_INVITE
+    await this.permissionService.checkOrganizationPermission(
+      org.id, userId, PermissionsEnum.ORGANIZATION_INVITE
     );
     let member = org.members.find((m) => m.userId === memberId);
 
@@ -190,10 +182,8 @@ export class OrganizationsService {
 
   async deleteMember(userId: number, id: number, memberId: number) {
     const org = await this.findOne(id, userId);
-    this.checkOrganizationPermission(
-      org,
-      userId,
-      PermissionsEnum.ORGANIZATION_INVITE
+    await this.permissionService.checkOrganizationPermission(
+      org.id, userId, PermissionsEnum.ORGANIZATION_INVITE
     );
     const member = org.members.find((m) => m.userId === memberId);
     if (
