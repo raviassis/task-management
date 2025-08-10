@@ -3,17 +3,17 @@ import { HttpClient, HttpStatusCode } from '@angular/common/http';
 import { catchError, Observable, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
-import { CreateOrganizationDto, Organization } from '@task-management/data';
+import { Task } from '@task-management/data';
 
-export interface UserInvite {
-  userId: number; 
-  role: string;
+export interface TaskCreateRequest {
+  title: string;
+  description: string;
 }
 
 @Injectable({
   providedIn: 'root',
 })
-export class OrganizationService {
+export class TaskService {
   private readonly baseUrl = `${environment.apiUrl}/organizations`;
   private authService = inject(AuthService);
   private http = inject(HttpClient);
@@ -23,20 +23,8 @@ export class OrganizationService {
     }
   }
 
-  getOrganizations(): Observable<Organization[]> {
-    return this.http.get<Organization[]>(this.baseUrl, {
-      headers: this.headers,
-    });
-  }
-
-  getOrganization(id: number): Observable<Organization> {
-    return this.http.get<Organization>(`${this.baseUrl}/${id}`, {
-      headers: this.headers,
-    });
-  }
-
-  createOrganization(dto: CreateOrganizationDto): Observable<Organization> {
-    return this.http.post<Organization>(this.baseUrl, dto, {
+  getTasks(organizationId: number): Observable<Task[]> {
+    return this.http.get<Task[]>(`${this.baseUrl}/${organizationId}/tasks`, {
       headers: this.headers,
     }).pipe(
       catchError((error) => {
@@ -45,14 +33,12 @@ export class OrganizationService {
           return throwError(() => new Error(error.error.message));
         }
         return throwError(() => error);
-      })
+      }),
     );
   }
-  
-  inviteMember(organizationId: number, dto: UserInvite) {
-    return this.http.put(`${this.baseUrl}/${organizationId}/members/${dto.userId}`, {
-      role: dto.role,
-    }, {
+
+  createTask(organizationId: number, dto: TaskCreateRequest) {
+    return this.http.post<Task>(`${this.baseUrl}/${organizationId}/tasks`, dto, {
       headers: this.headers,
     }).pipe(
       catchError((error) => {
@@ -61,7 +47,7 @@ export class OrganizationService {
           return throwError(() => new Error(error.error.message));
         }
         return throwError(() => error);
-      })
+      }),
     );
   }
 }

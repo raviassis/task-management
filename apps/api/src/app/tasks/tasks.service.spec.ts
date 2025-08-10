@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TasksService } from './tasks.service';
 import { Repository } from 'typeorm';
-import { Task, TaskStatusEnum } from './entities/task.entity';
+import { Task } from './entities/task.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -9,6 +9,7 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { OrganizationPermissionService } from '../organizations/organization-permissions.service';
 import { OrganizationsService } from '../organizations/organizations.service';
 import { Organization } from '../organizations/entities/organization.entity';
+import { TaskStatusEnum } from '@task-management/data';
 
 describe('TasksService', () => {
   let service: TasksService;

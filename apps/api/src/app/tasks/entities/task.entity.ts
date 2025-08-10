@@ -1,14 +1,7 @@
 import { Column, Entity, ManyToOne } from "typeorm";
 import { BaseEntity } from "../../common/entities/base.entity";
 import { Organization } from "../../organizations/entities/organization.entity";
-
-export const TaskStatusEnum =  {
-  TODO: 'todo',
-  IN_PROGRESS: 'in-progress',
-  DONE: 'done',
-} as const;
-
-export type TaskStatusEnum = (typeof TaskStatusEnum)[keyof typeof TaskStatusEnum];
+import { TaskStatusEnum } from "@task-management/data";
 
 @Entity()
 export class Task extends BaseEntity {
