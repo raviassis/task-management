@@ -2,20 +2,22 @@
   <h1 class="text-3xl font-semibold text-gray-800 mb-6">Task Manager</h1>
   <div class="custom-card">
 
-    <div class="text-center">
-      <h2 class="text-lg font-medium text-gray-700 mb-4">Login</h2>
-      <form [formGroup]="loginForm" (ngSubmit)="submit()">
+    <div class="text-left">
+      <h2 class="text-lg text-center font-medium text-gray-700 mb-4">Sign Up</h2>
+      <form>
         <input
           type="email"
           formControlName="email"
           placeholder="Email Address"
           class="custom-input"
         />
-        @if (emailError()) {
-          <div>
-            {{emailError()}}
-          </div>
-        }
+
+        <input
+          type="text"
+          formControlName="name"
+          placeholder="Name"
+          class="custom-input"
+        />
 
         <input
           type="password"
@@ -24,21 +26,19 @@
           class="custom-input"
         />
 
-        @if (passwordError()) {
-          <div>
-            {{passwordError()}}
-          </div>
-        }
+        <input
+          type="password"
+          formControlName="confirmPassword"
+          placeholder="Confirm Password"
+          class="custom-input"
+        />
 
         <button
           class="custom-button"
-          [disabled]="!valid()"
         >
-          Log in
+          Sign Up
         </button>
       </form>
-      <app-alert [message]="errorMessage"></app-alert>
-      <app-loading [loading]="isLoading"></app-loading>
     </div>
   </div>
 </div>

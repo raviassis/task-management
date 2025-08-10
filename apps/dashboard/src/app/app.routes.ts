@@ -8,6 +8,11 @@ export const appRoutes: Route[] = [
       import('./pages/login/login').then(m => m.LoginPage),
   },
   {
+    path: 'register',
+    loadComponent: () =>
+      import('./pages/register/register').then(m => m.RegisterPage),
+  },
+  {
     path: '',
     loadComponent: () =>
       import('./pages/home/home').then(m => m.HomePage),

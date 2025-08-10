@@ -15,7 +15,7 @@ import { finalize } from 'rxjs';
     CommonModule, 
     ReactiveFormsModule,
     AlertComponent,
-    LoadingComponent
+    LoadingComponent,
   ],
   templateUrl: './login.html',
   styleUrl: './login.css',
