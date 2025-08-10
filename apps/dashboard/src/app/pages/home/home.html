@@ -1,10 +1,12 @@
 <div class="min-h-screen bg-gray-50 p-6">
   <!-- Header -->
   <div class="flex justify-between items-center mb-6">
-    <div>
-      <h1 class="text-2xl font-semibold text-gray-800">Welcome, {{ user.name }}</h1>
-      <p class="text-sm text-gray-600">{{ user.email }}</p>
-    </div>
+    @if (user) {
+      <div>
+        <h1 class="text-2xl font-semibold text-gray-800">Welcome, {{ user.name }}</h1>
+        <p class="text-sm text-gray-600">{{ user.email }}</p>
+      </div>
+    }
     <button (click)="logoff()" class="custom-link">Log off</button>
   </div>
 
@@ -33,18 +35,18 @@
       </div>
 
       @if (expanded()[org.id]) {
-        <button (click)="createSubOrganization(org.name)" class="custom-link text-sm">
+        <button (click)="createSubOrganization(org)" class="custom-link text-sm">
           + Add Sub-Organization
         </button>
         @if (getSubOrganizations(org).length) {
           <div class="mt-2 text-gray-700">
             @for (sub of getSubOrganizations(org); track sub.id) {
-              <div class="m-4">
-                <a [routerLink]="['/organizations', sub.id]" class="custom-link">
-                  {{ sub.name }}
-                </a>
-              </div>
-            }
+             <div class="m-4">
+                 <a [routerLink]="['/organizations', sub.id]" class="custom-link">
+                   {{ sub.name }}
+                 </a>
+               </div>
+             }
           </div>
         }
       }
@@ -54,6 +56,13 @@
     <app-create-organization-modal 
       (create)="handleCreateOrganization($event)"
       (ngClose)="showCreateOrganizationModal = false"
+    />
+  }
+  @if (showCreateSubOrganizationModal) {
+    <app-create-organization-modal 
+      [parent]="selectedParentOrg"
+      (create)="handleCreateSubOrganization($event)"
+      (ngClose)="showCreateSubOrganizationModal = false"
     />
   }
   <app-loading [loading]="isLoading"></app-loading>
