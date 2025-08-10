@@ -4,7 +4,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { In, IsNull, Repository } from 'typeorm';
 import { Organization } from './entities/organization.entity';
@@ -14,6 +13,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PermissionsEnum } from '../rbac/permission';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { OrganizationPermissionService } from './organization-permissions.service';
+import { CreateOrganizationDto } from '@task-management/data';
 
 @Injectable()
 export class OrganizationsService {

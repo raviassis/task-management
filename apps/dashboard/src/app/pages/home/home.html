@@ -50,4 +50,10 @@
       }
     </div>
   }
+  @if (showCreateOrganizationModal) {
+    <app-create-organization-modal 
+      (create)="handleCreateOrganization($event)"
+      (ngClose)="showCreateOrganizationModal = false"
+    />
+  }
 </div>

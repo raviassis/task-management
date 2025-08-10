@@ -3,10 +3,12 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { Router, RouterLink } from '@angular/router';
 import { Organization, OrganizationService } from '../../services/organization.service';
+import { CreateOrganizationModal } from './create-organization-modal/create-organization-modal';
+import { CreateOrganizationDto } from '@task-management/data';
 
 @Component({
   selector: 'app-home',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, CreateOrganizationModal],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -18,6 +20,8 @@ export class HomePage implements OnInit {
     name: 'Ravi',
     email: 'ravi@example.com',
   };
+
+  showCreateOrganizationModal = false;
 
   organizations: Organization[] = [];
 
@@ -50,7 +54,12 @@ export class HomePage implements OnInit {
   }
 
   createOrganization() {
-    console.log('Create new organization');
+    this.showCreateOrganizationModal = true;
+  }
+
+  handleCreateOrganization(dto: CreateOrganizationDto) {
+    console.log('New organization:', dto);
+    this.showCreateOrganizationModal = false;
   }
 
   createSubOrganization(orgName: string) {
