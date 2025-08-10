@@ -54,6 +54,7 @@ describe('AuthService', () => {
       user = {
         id: 1,
         email: 'test@example.com',
+        name: 'Test User',
         password: hashedPassword,
       } as User;
     });
@@ -86,7 +87,12 @@ describe('AuthService', () => {
         sub: user.id,
         email: user.email,
       });
-      expect(result).toEqual({ access_token: 'jwt-token' });
+      expect(result).toEqual({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        access_token: 'jwt-token',
+      });
     });
   });
 });
