@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpStatusCode } from '@angular/common/http';
 import { BehaviorSubject, catchError, Observable, of, tap, throwError } from 'rxjs';
-import { CreateUserDto, LoginDto, User, UserProfile } from '@task-management/data';
+import { CreateUserDto, LoginDto, User } from '@task-management/data';
 import { environment } from '../../environments/environment';
 
 const STORAGEKEY_LOGGED_USER = 'logged-user';

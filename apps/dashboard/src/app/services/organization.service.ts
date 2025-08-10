@@ -3,14 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
-
-export interface Organization {
-  id: number;
-  createdAt: string;
-  updatedAt: string;
-  name: string;
-  subOrganizations: Omit<Organization, 'subOrganizations'>[]
-}
+import { CreateOrganizationDto, Organization } from '@task-management/data';
 
 @Injectable({
   providedIn: 'root',
@@ -19,21 +12,25 @@ export class OrganizationService {
   private readonly baseUrl = `${environment.apiUrl}/organizations`;
   private authService = inject(AuthService);
   private http = inject(HttpClient);
-
+  headers = {
+    'Authorization': `Bearer ${this.authService.currentUser?.access_token}`
+  }
 
   getOrganizations(): Observable<Organization[]> {
     return this.http.get<Organization[]>(this.baseUrl, {
-      headers: {
-        'Authorization': `Bearer ${this.authService.currentUser?.access_token}`
-      }
+      headers: this.headers,
     });
   }
 
   getOrganization(id: number): Observable<Organization> {
     return this.http.get<Organization>(`${this.baseUrl}/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${this.authService.currentUser?.access_token}`
-      }
+      headers: this.headers,
+    });
+  }
+
+  createOrganization(dto: CreateOrganizationDto): Observable<Organization> {
+    return this.http.post<Organization>(this.baseUrl, dto, {
+      headers: this.headers,
     });
   }
 }
