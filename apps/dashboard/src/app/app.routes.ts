@@ -18,5 +18,10 @@ export const appRoutes: Route[] = [
       import('./pages/home/home').then(m => m.HomePage),
     canActivate: [authGuard],
   },
+  {
+    path: 'organizations/:organizationId',
+    loadComponent: () => import('./pages/organization/organization').then(m => m.OrganizationPage),
+    canActivate: [authGuard],
+  },
   { path: '**', redirectTo: '' }
 ];
