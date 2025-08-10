@@ -62,7 +62,7 @@ export class AuthService {
     localStorage.removeItem(STORAGEKEY_LOGGED_USER);
   }
 
-  get currentUser(): UserProfile | null {
+  get currentUser(): User | null {
     return this.userSubject.value;
   }
 
