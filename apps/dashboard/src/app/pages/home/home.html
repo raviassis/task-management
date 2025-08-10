@@ -14,7 +14,7 @@
       + New Organization
     </button>
   </div>
-
+  <app-alert [message]="errorMessage"></app-alert>
   <!-- Organization List -->
   @for (org of organizations; track org.id) {
     <div class="bg-white shadow rounded p-4 mb-4">
@@ -56,4 +56,5 @@
       (ngClose)="showCreateOrganizationModal = false"
     />
   }
+  <app-loading [loading]="isLoading"></app-loading>
 </div>
