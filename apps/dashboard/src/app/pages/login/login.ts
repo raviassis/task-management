@@ -3,19 +3,36 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LoginDto } from '@task-management/data';
 import { validateSync } from 'class-validator';
+import { AuthService } from '../../services/auth.service';
+import { AlertComponent } from '../../components/alert-message/alert-message';
+import { Router } from '@angular/router';
+import { LoadingComponent } from '../../components/loading/loading';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-login',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [
+    CommonModule, 
+    ReactiveFormsModule,
+    AlertComponent,
+    LoadingComponent
+  ],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
 export class LoginPage {
+  private router = inject(Router);
+  private authService = inject(AuthService);
   private fb = inject(FormBuilder);
+
   loginForm: FormGroup = this.fb.group({
     email: ['', Validators.required],
     password: ['', Validators.required],
   });
+
+  errorMessage: string | null = null;
+
+  isLoading = false;
 
   validateField(fieldName: keyof LoginDto): string | null {
     const field = this.loginForm.get(fieldName);
@@ -43,9 +60,21 @@ export class LoginPage {
   }
     
   async submit() {
+    this.isLoading = true;
     const dto = new LoginDto();
     dto.email = this.loginForm.get('email')?.value;
     dto.password = this.loginForm.get('password')?.value;
-    console.log('call api');
+    this.authService.login(dto).pipe(
+      finalize(() => {
+        this.isLoading = false;
+      })
+    ).subscribe({
+      next: () => {
+        this.router.navigate(['/']);
+      },
+      error: (err) => {
+        this.errorMessage = err.message || 'Unexpected error';
+      },
+    });
   }
 }
