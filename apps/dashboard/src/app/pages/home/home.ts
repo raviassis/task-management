@@ -2,7 +2,8 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { Router, RouterLink } from '@angular/router';
-import { Organization, OrganizationService } from '../../services/organization.service';
+import { OrganizationService } from '../../services/organization.service';
+import { Organization } from '@task-management/data';
 import { CreateOrganizationModal } from './create-organization-modal/create-organization-modal';
 import { CreateOrganizationDto } from '@task-management/data';
 
@@ -29,27 +30,27 @@ export class HomePage implements OnInit {
     this.organizationService.getOrganizations().subscribe({
       next: (orgs) => {
         this.organizations = orgs;
-      }
-    })
+      },
+    });
   }
 
   expanded = signal<Record<string, boolean>>({});
 
   toggle(orgSlug: number) {
     const current = this.expanded()[orgSlug] ?? false;
-    this.expanded.update(state => ({ ...state, [orgSlug]: !current }));
+    this.expanded.update((state) => ({ ...state, [orgSlug]: !current }));
   }
 
   getSubOrganizations(org: Organization) {
     if (org.subOrganizations && org.subOrganizations.length > 0) {
       return org.subOrganizations;
     }
-    org = this.organizations.find(o => o.id = org.id)!;
+    org = this.organizations.find((o) => (o.id = org.id))!;
     this.organizationService.getOrganization(org.id).subscribe({
       next: (res) => {
         org.subOrganizations = res.subOrganizations;
-      }
-    })
+      },
+    });
     return [];
   }
 
