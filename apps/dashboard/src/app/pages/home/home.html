@@ -1,2 +1,53 @@
-<p>home works!</p>
-<p>{{dataResp}}</p>
+<div class="min-h-screen bg-gray-50 p-6">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-800">Welcome, {{ user.name }}</h1>
+      <p class="text-sm text-gray-600">{{ user.email }}</p>
+    </div>
+    <button (click)="logoff()" class="custom-link">Log off</button>
+  </div>
+
+  <!-- Create Buttons -->
+  <div class="flex gap-4 mb-6">
+    <button (click)="createOrganization()" class="custom-button">
+      + New Organization
+    </button>
+  </div>
+
+  <!-- Organization List -->
+  @for (org of organizations; track org.slug) {
+    <div class="bg-white shadow rounded p-4 mb-4">
+      <div class="flex justify-between items-center">
+        <a 
+          [routerLink]="['/organizations', org.slug]" 
+          class="text-lg font-semibold hover:underline custom-link"
+        >
+          {{ org.name }}
+        </a>
+        <div class="flex gap-2 items-center">
+          <button (click)="toggle(org.slug)" class="text-sm text-gray-600 hover:text-black">
+            @if (expanded()[org.slug]) { Hide } @else { Show }
+          </button>
+        </div>
+      </div>
+
+      @if (expanded()[org.slug]) {
+        <button (click)="createSubOrganization(org.name)" class="custom-link text-sm">
+          + Add Sub-Organization
+        </button>
+        @if (org.subOrganizations.length > 0) {
+          <div class="mt-2 list-disc list-inside text-gray-700">
+            @for (sub of org.subOrganizations; track sub.slug) {
+              <div class="m-4">
+                <a [routerLink]="['/organizations', org.slug, 'sub', sub.slug]" class="custom-link">
+                  {{ sub.name }}
+                </a>
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+</div>
