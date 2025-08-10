@@ -1,5 +1,5 @@
+import { RoleEnum } from "@task-management/rbac";
 import { IsEnum } from "class-validator";
-import { RoleEnum } from "../../rbac/role";
 
 export class UpdateMemberDto {
   @IsEnum(RoleEnum)

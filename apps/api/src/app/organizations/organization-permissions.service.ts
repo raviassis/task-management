@@ -2,8 +2,7 @@ import { ForbiddenException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { OrganizationUser } from "./entities/organization-user.entity";
 import { Repository } from "typeorm";
-import { hasPermission } from "../rbac/role";
-import { PermissionsEnum } from "../rbac/permission";
+import { PermissionsEnum, hasPermission } from '@task-management/rbac';
 
 @Injectable()
 export class OrganizationPermissionService {

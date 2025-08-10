@@ -6,7 +6,7 @@ import { Task } from './entities/task.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OrganizationPermissionService } from '../organizations/organization-permissions.service';
 import { OrganizationsService } from '../organizations/organizations.service';
-import { PermissionsEnum } from '../rbac/permission';
+import { PermissionsEnum } from '@task-management/rbac';
 
 @Injectable()
 export class TasksService {

@@ -8,12 +8,11 @@ import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { In, IsNull, Repository } from 'typeorm';
 import { Organization } from './entities/organization.entity';
 import { OrganizationUser } from './entities/organization-user.entity';
-import { hasPermission, RoleEnum } from '../rbac/role';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PermissionsEnum } from '../rbac/permission';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { OrganizationPermissionService } from './organization-permissions.service';
 import { CreateOrganizationDto } from '@task-management/data';
+import { hasPermission, PermissionsEnum, RoleEnum } from '@task-management/rbac';
 
 @Injectable()
 export class OrganizationsService {

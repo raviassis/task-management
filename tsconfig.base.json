@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@task-management/data": ["libs/data/src/index.ts"]
+      "@task-management/data": ["libs/data/src/index.ts"],
+      "@task-management/rbac": ["libs/rbac/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
