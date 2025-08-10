@@ -2,9 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException } from '@nestjs/common';
 import { OrganizationPermissionService } from './organization-permissions.service';
 import { OrganizationUser } from './entities/organization-user.entity';
-import { PermissionsEnum } from '../rbac/permission';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import{ RoleEnum } from '../rbac/role';
+import { RoleEnum, PermissionsEnum } from '@task-management/rbac';
 
 describe('OrganizationPermissionService', () => {
   let service: OrganizationPermissionService;

@@ -1,7 +1,7 @@
 import { Column, Entity, ManyToOne, PrimaryColumn } from "typeorm";
-import { RoleEnum } from "../../rbac/role";
 import { User } from "../../users/entities/user.entity";
 import { Organization } from "./organization.entity";
+import { RoleEnum } from "@task-management/rbac";
 
 @Entity('organization_users')
 export class OrganizationUser {

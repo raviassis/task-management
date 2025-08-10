@@ -5,8 +5,8 @@ import { Organization } from './entities/organization.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { OrganizationUser } from './entities/organization-user.entity';
-import { RoleEnum } from '../rbac/role';
 import { OrganizationPermissionService } from './organization-permissions.service';
+import { RoleEnum } from '@task-management/rbac';
 
 describe('OrganizationsService', () => {
   let service: OrganizationsService;
