@@ -23,12 +23,11 @@ export class HomePage implements OnInit {
   private authService = inject(AuthService);
   private organizationService = inject(OrganizationService);
   private router = inject(Router);
-  user = {
-    name: 'Ravi',
-    email: 'ravi@example.com',
-  };
+  user = this.authService.currentUser;
 
   showCreateOrganizationModal = false;
+  showCreateSubOrganizationModal = false;
+  selectedParentOrg?: Organization | null;
   isLoading = false;
   errorMessage: string | null = null;
 
@@ -82,8 +81,28 @@ export class HomePage implements OnInit {
       });
   }
 
-  createSubOrganization(orgName: string) {
-    console.log(`Create sub-organization under ${orgName}`);
+  createSubOrganization(org: Organization) {
+    this.showCreateSubOrganizationModal = true;
+    this.selectedParentOrg = org;
+  }
+
+  handleCreateSubOrganization(dto: CreateOrganizationDto) {
+    this.showCreateSubOrganizationModal = false;
+    this.isLoading = true;
+    this.organizationService.createOrganization(dto)
+      .pipe(finalize(() => {
+        this.isLoading = false;
+      }))
+      .subscribe({
+        next: (org) => {
+          this.organizations
+            .find(o => o.id === dto.parentId)
+            ?.subOrganizations.unshift(org);
+        },
+        error: (err) => {
+          this.errorMessage = err.message || 'Unexpected error';
+        },
+      });
   }
 
   logoff() {
@@ -91,12 +110,3 @@ export class HomePage implements OnInit {
     this.router.navigate(['/login']);
   }
 }
-
-
-// @for (sub of getSubOrganizations(org); track sub.id) {
-//               <div class="m-4">
-//                 <a [routerLink]="['/organizations', sub.id]" class="custom-link">
-//                   {{ sub.name }}
-//                 </a>
-//               </div>
-//             }

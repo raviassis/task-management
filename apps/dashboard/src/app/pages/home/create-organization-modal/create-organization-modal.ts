@@ -1,7 +1,7 @@
-import { Component, EventEmitter, inject, Output } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { CreateOrganizationDto } from '@task-management/data';
+import { CreateOrganizationDto, Organization } from '@task-management/data';
 import { validateSync } from 'class-validator';
 
 @Component({
@@ -11,6 +11,7 @@ import { validateSync } from 'class-validator';
   styleUrl: './create-organization-modal.css',
 })
 export class CreateOrganizationModal {
+  @Input() parent?: Organization | null;
   @Output() ngClose = new EventEmitter<void>();
   @Output() create = new EventEmitter<CreateOrganizationDto>();
 
@@ -35,6 +36,7 @@ export class CreateOrganizationModal {
     if (this.form.valid && this.form.value.name) {
       const dto = new CreateOrganizationDto();
       dto.name = this.form.value.name as string;
+      dto.parentId = this.parent?.id;
       this.create.emit(dto);
       this.form.reset();
     } else {
