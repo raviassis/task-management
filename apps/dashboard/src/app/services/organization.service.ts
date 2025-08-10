@@ -17,8 +17,10 @@ export class OrganizationService {
   private readonly baseUrl = `${environment.apiUrl}/organizations`;
   private authService = inject(AuthService);
   private http = inject(HttpClient);
-  headers = {
-    'Authorization': `Bearer ${this.authService.currentUser?.access_token}`
+  get headers() {
+    return {
+      'Authorization': `Bearer ${this.authService.currentUser?.access_token}`
+    }
   }
 
   getOrganizations(): Observable<Organization[]> {

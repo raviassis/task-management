@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpStatusCode } from '@angular/common/http';
-import { BehaviorSubject, catchError, Observable, of, tap, throwError } from 'rxjs';
+import { catchError, Observable, of, tap, throwError } from 'rxjs';
 import { CreateUserDto, LoginDto, User } from '@task-management/data';
 import { environment } from '../../environments/environment';
 
@@ -13,10 +13,7 @@ export class AuthService {
   private http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/auth`;
 
-  private userSubject = new BehaviorSubject<User | null>(null);
-  public readonly user$: Observable<User | null> = this.userSubject.asObservable();
-
-  loadUserProfile(): Observable<User> {
+  loadUserProfile(): Observable<User | null> {
     // TODO: Set up HTTPS on both backend and frontend to allow secure cookie-based authentication 
     // in production.
     // ref: https://medium.com/kanlanc/heres-why-storing-jwt-in-local-storage-is-a-great-mistake-df01dad90f9e
@@ -30,14 +27,7 @@ export class AuthService {
     //     return throwError(() => error);
     //   })
     // );
-    const userJson = localStorage.getItem(STORAGEKEY_LOGGED_USER);
-    if (userJson) {
-      const user = JSON.parse(userJson) as User;
-      this.userSubject.next(user);
-      return of(user);
-    }
-
-    return of();
+    return of(this.currentUser);
   }
 
   login(dto: LoginDto): Observable<User> {
@@ -46,7 +36,6 @@ export class AuthService {
         // TODO: don't save token in localstorage.
         // Remove it after solve cookie-based authentication
         localStorage.setItem(STORAGEKEY_LOGGED_USER, JSON.stringify(user));
-        this.userSubject.next(user);
       }),
       catchError((error) => {
         if (error.status === HttpStatusCode.Unauthorized) {
@@ -58,16 +47,19 @@ export class AuthService {
   }
 
   logout(): void {
-    this.userSubject.next(null);
     localStorage.removeItem(STORAGEKEY_LOGGED_USER);
   }
 
   get currentUser(): User | null {
-    return this.userSubject.value;
+    const userJson = localStorage.getItem(STORAGEKEY_LOGGED_USER);
+    if (userJson) {
+      return JSON.parse(userJson) as User;
+    }
+    return null;
   }
 
   isLoggedIn(): boolean {
-    return this.userSubject.value !== null;
+    return this.currentUser !== null;
   }
 
   registerUser(dto: CreateUserDto) {

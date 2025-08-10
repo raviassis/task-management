@@ -21,7 +21,9 @@ import { Router, RouterLink } from '@angular/router';
 export class HeaderComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
-  user = this.authService.currentUser;
+  get user() {
+    return this.authService.currentUser;
+  }
 
   triggerLogoff() {
     this.authService.logout();
