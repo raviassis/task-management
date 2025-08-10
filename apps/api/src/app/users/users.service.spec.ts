@@ -2,10 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { UserDto } from './dto/user.dto';
-import { CreateUserDto } from './dto/create-user.dto';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { CreateUserDto } from '@task-management/data';
 
 describe('UsersService', () => {
   let service: UsersService;
