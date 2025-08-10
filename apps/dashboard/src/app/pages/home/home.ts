@@ -9,12 +9,14 @@ import { CreateOrganizationDto } from '@task-management/data';
 import { LoadingComponent } from '../../components/loading/loading';
 import { finalize } from 'rxjs';
 import { AlertComponent } from '../../components/alert-message/alert-message';
+import { OrganizationPage } from '../organization/organization';
+import { HeaderComponent } from '../../components/header/header';
 
 @Component({
   selector: 'app-home',
   imports: [
     CommonModule, RouterLink, CreateOrganizationModal, LoadingComponent,
-    AlertComponent
+    AlertComponent, HeaderComponent
   ],
   templateUrl: './home.html',
   styleUrl: './home.css',
