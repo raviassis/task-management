@@ -1,13 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { NxWelcome } from './nx-welcome';
+import { AuthService } from './services/auth.service';
 
 @Component({
-  imports: [NxWelcome, RouterModule],
+  imports: [RouterModule],
   selector: 'app-root',
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {
+export class App implements OnInit {
+  private authService = inject(AuthService);
   protected title = 'dashboard';
+
+  ngOnInit() {
+    this.authService.loadUserProfile().subscribe();
+  }
 }
