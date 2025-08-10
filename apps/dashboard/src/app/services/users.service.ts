@@ -13,8 +13,10 @@ export class UserService {
   private authService = inject(AuthService);
   private http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/users`;
-  headers = {
-    'Authorization': `Bearer ${this.authService.currentUser?.access_token}`
+  get headers() {
+    return {
+      'Authorization': `Bearer ${this.authService.currentUser?.access_token}`
+    }
   }
 
   getUsers(): Observable<UserProfile[]> {
