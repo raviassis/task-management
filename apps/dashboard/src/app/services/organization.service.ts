@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpStatusCode } from '@angular/common/http';
+import { catchError, Observable, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
 import { CreateOrganizationDto, Organization } from '@task-management/data';
@@ -31,6 +31,14 @@ export class OrganizationService {
   createOrganization(dto: CreateOrganizationDto): Observable<Organization> {
     return this.http.post<Organization>(this.baseUrl, dto, {
       headers: this.headers,
-    });
+    }).pipe(
+      catchError((error) => {
+        const status = [HttpStatusCode.BadRequest, HttpStatusCode.Forbidden]
+        if (status.includes(error.status)) {
+          return throwError(() => new Error(error.error.message));
+        }
+        return throwError(() => error);
+      })
+    );
   }
 }

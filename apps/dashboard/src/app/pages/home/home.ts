@@ -6,10 +6,16 @@ import { OrganizationService } from '../../services/organization.service';
 import { Organization } from '@task-management/data';
 import { CreateOrganizationModal } from './create-organization-modal/create-organization-modal';
 import { CreateOrganizationDto } from '@task-management/data';
+import { LoadingComponent } from '../../components/loading/loading';
+import { finalize } from 'rxjs';
+import { AlertComponent } from '../../components/alert-message/alert-message';
 
 @Component({
   selector: 'app-home',
-  imports: [CommonModule, RouterLink, CreateOrganizationModal],
+  imports: [
+    CommonModule, RouterLink, CreateOrganizationModal, LoadingComponent,
+    AlertComponent
+  ],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -23,6 +29,8 @@ export class HomePage implements OnInit {
   };
 
   showCreateOrganizationModal = false;
+  isLoading = false;
+  errorMessage: string | null = null;
 
   organizations: Organization[] = [];
 
@@ -34,24 +42,23 @@ export class HomePage implements OnInit {
     });
   }
 
-  expanded = signal<Record<string, boolean>>({});
+  expanded = signal<Record<number, boolean>>({});
 
   toggle(orgSlug: number) {
     const current = this.expanded()[orgSlug] ?? false;
     this.expanded.update((state) => ({ ...state, [orgSlug]: !current }));
+    if (!current) {
+      const org = this.organizations.find((o) => (o.id === orgSlug))!;
+      this.organizationService.getOrganization(org.id).subscribe({
+        next: (res) => {
+          org.subOrganizations = res.subOrganizations;
+        },
+      });
+    }
   }
 
   getSubOrganizations(org: Organization) {
-    if (org.subOrganizations && org.subOrganizations.length > 0) {
-      return org.subOrganizations;
-    }
-    org = this.organizations.find((o) => (o.id = org.id))!;
-    this.organizationService.getOrganization(org.id).subscribe({
-      next: (res) => {
-        org.subOrganizations = res.subOrganizations;
-      },
-    });
-    return [];
+    return org.subOrganizations || [];
   }
 
   createOrganization() {
@@ -59,8 +66,20 @@ export class HomePage implements OnInit {
   }
 
   handleCreateOrganization(dto: CreateOrganizationDto) {
-    console.log('New organization:', dto);
     this.showCreateOrganizationModal = false;
+    this.isLoading = true;
+    this.organizationService.createOrganization(dto)
+      .pipe(finalize(() => {
+        this.isLoading = false;
+      }))
+      .subscribe({
+        next: (org) => {
+          this.organizations.unshift(org);
+        },
+        error: (err) => {
+          this.errorMessage = err.message || 'Unexpected error';
+        },
+      });
   }
 
   createSubOrganization(orgName: string) {
@@ -72,3 +91,12 @@ export class HomePage implements OnInit {
     this.router.navigate(['/login']);
   }
 }
+
+
+// @for (sub of getSubOrganizations(org); track sub.id) {
+//               <div class="m-4">
+//                 <a [routerLink]="['/organizations', sub.id]" class="custom-link">
+//                   {{ sub.name }}
+//                 </a>
+//               </div>
+//             }
