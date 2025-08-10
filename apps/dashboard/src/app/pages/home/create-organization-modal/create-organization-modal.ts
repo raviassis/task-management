@@ -3,10 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { CreateOrganizationDto, Organization } from '@task-management/data';
 import { validateSync } from 'class-validator';
+import { Modal } from '../../../components/modal/modal';
 
 @Component({
   selector: 'app-create-organization-modal',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, Modal],
   templateUrl: './create-organization-modal.html',
   styleUrl: './create-organization-modal.css',
 })
