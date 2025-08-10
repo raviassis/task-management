@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Get, Request, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from '@task-management/data';
-import { CreateUserDto } from '../users/dto/create-user.dto';
+import { CreateUserDto } from '@task-management/data';
 import { UserDto } from '../users/dto/user.dto';
 import { UsersService } from '../users/users.service';
 import { Public } from './auth.guard';
@@ -17,14 +17,14 @@ export class AuthController {
   @Public()
   @Post('login')
   async login(
-    @Body() loginDto: LoginDto, 
+    @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response
   ) {
     const user = await this.authService.login(loginDto);
-    // TODO: Set up HTTPS on both backend and frontend to allow secure cookie-based authentication 
+    // TODO: Set up HTTPS on both backend and frontend to allow secure cookie-based authentication
     // in production.
     // ref: https://medium.com/kanlanc/heres-why-storing-jwt-in-local-storage-is-a-great-mistake-df01dad90f9e
-    res.cookie('access_token', user.access_token, { 
+    res.cookie('access_token', user.access_token, {
       httpOnly: true,
       sameSite: 'none',
       secure: true,
