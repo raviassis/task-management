@@ -10,9 +10,9 @@ import {
   Request
 } from '@nestjs/common';
 import { OrganizationsService } from './organizations.service';
-import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
+import { CreateOrganizationDto } from '@task-management/data';
 
 @Controller('organizations')
 export class OrganizationsController {
