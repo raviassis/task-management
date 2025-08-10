@@ -1,0 +1,39 @@
+<app-modal>
+  <h2 class="text-xl font-semibold mb-4 text-gray-800">Create New Task</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+    <!-- Title -->
+    <div>
+      <input
+        formControlName="title"
+        type="text"
+        placeholder="Task title"
+        class="w-full custom-input"
+        [class.border-red-500]="form.get('title')?.invalid && form.get('title')?.touched"
+      />
+      @if (form.get('title')?.invalid && form.get('title')?.touched) {
+        <div class="text-red-500 text-sm mt-1">Title is required (min 3 characters).</div>
+      }
+    </div>
+
+    <!-- Description -->
+    <div>
+      <textarea
+        formControlName="description"
+        rows="4"
+        placeholder="Description (optional)"
+        class="w-full custom-input"
+      ></textarea>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-end gap-2">
+      <button type="button" (click)="cancel()" class="custom-button-neutral">
+        Cancel
+      </button>
+      <button type="submit" class="custom-button">
+        Create
+      </button>
+    </div>
+  </form>
+</app-modal>

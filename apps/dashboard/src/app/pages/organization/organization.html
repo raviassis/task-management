@@ -7,6 +7,7 @@
     <button type="button" class="custom-button mb-4" (click)="inviteMember()">
       + Invite
     </button>
+    <app-alert [message]="inviteErrorMessage"></app-alert>
     @if (organization && organization.members) {
       <ul class="space-y-2">
         @for (member of organization.members; track member.userId) {
@@ -25,12 +26,16 @@
   <!-- Tasks -->
   <div>
     <h2 class="text-lg font-semibold text-gray-700 mb-2">Tasks</h2>
+    <button type="button" class="custom-button mb-4" (click)="showCreateTaskModal = true">
+      + New
+    </button>
+    <app-alert [message]="taskErrorMessage"></app-alert>
     @if (loading()) {
       <p class="text-sm text-gray-500">Loading tasks...</p>
     } @else {
-      @if (tasks().length > 0) {
+      @if (tasks.length > 0) {
         <ul class="space-y-3">
-          @for (task of tasks(); track task.id) {
+          @for (task of tasks; track task.id) {
             <li class="bg-white p-4 rounded shadow">
               <div class="flex justify-between items-center">
                 <h3 class="font-medium text-gray-800">{{ task.title }}</h3>
@@ -53,6 +58,12 @@
       [users]="users"
       (ngClose)="showInviteModal = false"
       (invite)="handleInviteMember($event)"
+    />
+  }
+  @if(showCreateTaskModal) {
+    <app-create-task-modal
+      (create)="handleCreateTask($event)"
+      (ngClose)="showCreateTaskModal = false"
     />
   }
 </div>
