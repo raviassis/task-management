@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpStatusCode } from '@angular/common/http';
 import { BehaviorSubject, catchError, Observable, of, tap, throwError } from 'rxjs';
-import { LoginDto, User, UserProfile } from '@task-management/data';
+import { CreateUserDto, LoginDto, User, UserProfile } from '@task-management/data';
 import { environment } from '../../environments/environment';
 
 const STORAGEKEY_LOGGED_USER = 'logged-user';
@@ -49,7 +49,7 @@ export class AuthService {
         this.userSubject.next(user);
       }),
       catchError((error) => {
-        if (error.status === 401) {
+        if (error.status === HttpStatusCode.Unauthorized) {
           return throwError(() => new Error('Invalid email or password'));
         }
         return throwError(() => error);
@@ -68,5 +68,16 @@ export class AuthService {
 
   isLoggedIn(): boolean {
     return this.userSubject.value !== null;
+  }
+
+  registerUser(dto: CreateUserDto) {
+    return this.http.post(`${this.baseUrl}/register`, dto).pipe(
+      catchError((err) => {
+        if (err.status === HttpStatusCode.Conflict) {
+          return throwError(() => new Error(err.error.message));
+        }
+        return throwError(() => err);
+      })
+    );
   }
 }

@@ -5,6 +5,9 @@ import { AlertComponent } from '../../components/alert-message/alert-message';
 import { LoadingComponent } from '../../components/loading/loading';
 import { CreateUserDto } from '@task-management/data';
 import { validateSync } from 'class-validator';
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-register',
@@ -18,7 +21,10 @@ import { validateSync } from 'class-validator';
   styleUrl: './register.css',
 })
 export class RegisterPage {
+  private router = inject(Router);
   private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+
 
   registerForm: FormGroup = this.fb.group({
     email: [''],
@@ -68,5 +74,28 @@ export class RegisterPage {
       && !this.nameError()
       && !this.passwordError()
       && !this.confirmPasswordError();
+  }
+
+  submit() {
+    this.isLoading = true;
+    this.errorMessage = null;
+    const dto = new CreateUserDto();
+    dto.email = this.registerForm.get('email')?.value;
+    dto.name = this.registerForm.get('name')?.value;
+    dto.password = this.registerForm.get('password')?.value;
+    this.authService.registerUser(dto)
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.router.navigate(['/login']);
+        },
+        error: (err) => {
+          this.errorMessage = err.message || 'Unexpected error';
+        },
+      });
   }
 }

@@ -5,7 +5,7 @@ import { LoginDto } from '@task-management/data';
 import { validateSync } from 'class-validator';
 import { AuthService } from '../../services/auth.service';
 import { AlertComponent } from '../../components/alert-message/alert-message';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { LoadingComponent } from '../../components/loading/loading';
 import { finalize } from 'rxjs';
 
@@ -16,6 +16,7 @@ import { finalize } from 'rxjs';
     ReactiveFormsModule,
     AlertComponent,
     LoadingComponent,
+    RouterLink,
   ],
   templateUrl: './login.html',
   styleUrl: './login.css',
@@ -61,6 +62,7 @@ export class LoginPage {
     
   async submit() {
     this.isLoading = true;
+    this.errorMessage = null;
     const dto = new LoginDto();
     dto.email = this.loginForm.get('email')?.value;
     dto.password = this.loginForm.get('password')?.value;
