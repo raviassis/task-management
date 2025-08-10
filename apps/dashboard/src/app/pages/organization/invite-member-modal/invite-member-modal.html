@@ -1,0 +1,44 @@
+<app-modal>
+  <h2 class="text-xl font-semibold mb-4 text-gray-800">Invite New Member</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+    <!-- User Select -->
+    <div>
+      <select
+        formControlName="userId"
+        class="w-full custom-input"
+        [class.border-red-500]="form.get('userId')?.invalid && form.get('userId')?.touched"
+      >
+        <option value="" disabled selected>Select a user</option>
+        @for (user of users; track user.id) {
+          <option [value]="user.id">{{ user.name }} ({{ user.email }})</option>
+        }
+      </select>
+      @if (form.get('userId')?.invalid && form.get('userId')?.touched) {
+        <div class="text-red-500 text-sm mt-1">User is required.</div>
+      }
+    </div>
+
+    <!-- Role Select -->
+    <div>
+      <select
+        formControlName="role"
+        class="w-full custom-input"
+      >
+        <option value="owner">Owner</option>
+        <option value="admin">Admin</option>
+        <option value="viewer">Viewer</option>
+      </select>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-end gap-2">
+      <button type="button" (click)="cancel()" class="custom-button-neutral">
+        Cancel
+      </button>
+      <button type="submit" class="custom-button">
+        Invite
+      </button>
+    </div>
+  </form>
+</app-modal>

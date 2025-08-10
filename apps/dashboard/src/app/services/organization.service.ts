@@ -5,6 +5,11 @@ import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
 import { CreateOrganizationDto, Organization } from '@task-management/data';
 
+export interface UserInvite {
+  userId: number; 
+  role: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -40,5 +45,13 @@ export class OrganizationService {
         return throwError(() => error);
       })
     );
+  }
+  
+  inviteMember(organizationId: number, dto: UserInvite) {
+    return this.http.put(`${this.baseUrl}/${organizationId}/members/${dto.userId}`, {
+      role: dto.role,
+    }, {
+      headers: this.headers,
+    });
   }
 }

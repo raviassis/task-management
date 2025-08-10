@@ -1,0 +1,58 @@
+<div class="p-6 bg-gray-50 min-h-screen space-y-6">
+  <app-header/>
+
+  <!-- Members -->
+  <div>
+    <h2 class="text-lg font-semibold text-gray-700 mb-2">Members</h2>
+    <button type="button" class="custom-button mb-4" (click)="inviteMember()">
+      + Invite
+    </button>
+    @if (organization && organization.members) {
+      <ul class="space-y-2">
+        @for (member of organization.members; track member.userId) {
+          <li class="bg-white p-3 rounded shadow flex justify-between items-center">
+            <div>
+              <p class="font-medium text-gray-800">{{ member.user.name }}</p>
+              <p class="text-sm text-gray-600">{{ member.user.email }}</p>
+            </div>
+            <span class="text-xs bg-gray-200 px-2 py-1 rounded text-gray-700">{{ member.role }}</span>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+
+  <!-- Tasks -->
+  <div>
+    <h2 class="text-lg font-semibold text-gray-700 mb-2">Tasks</h2>
+    @if (loading()) {
+      <p class="text-sm text-gray-500">Loading tasks...</p>
+    } @else {
+      @if (tasks().length > 0) {
+        <ul class="space-y-3">
+          @for (task of tasks(); track task.id) {
+            <li class="bg-white p-4 rounded shadow">
+              <div class="flex justify-between items-center">
+                <h3 class="font-medium text-gray-800">{{ task.title }}</h3>
+                <span class="text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-800">
+                  {{ task.status }}
+                </span>
+              </div>
+              <p class="text-sm text-gray-600 mt-1">{{ task.description }}</p>
+              <p class="text-xs text-gray-400 mt-1">Updated: {{ task.updatedAt | date:'short' }}</p>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="text-sm text-gray-500">No tasks found.</p>
+      }
+    }
+  </div>
+  @if(showInviteModal) {
+    <app-invite-member-modal 
+      [users]="users"
+      (ngClose)="showInviteModal = false"
+      (invite)="handleInviteMember($event)"
+    />
+  }
+</div>
