@@ -1,82 +1,523 @@
 # TaskManagement
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+## Setup Instructions
+- Node.js >= 18.x
+- NPM
+- Nx CLI installed globally (optional)
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
-
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/tutorials/angular-monorepo-tutorial?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
-
-## Finish your CI setup
-
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/lKn7yv7d43)
-
-
-## Run tasks
-
-To run the dev server for your app, use:
-
-```sh
-npx nx serve dashboard
+```
+# installing nx cli
+npm install -g nx
 ```
 
-To create a production bundle:
+## Clone repository
+```
+# using web url
+git clone https://github.com/raviassis/task-management.git
 
-```sh
-npx nx build dashboard
+# using ssh
+git clone git@github.com:raviassis/task-management.git
 ```
 
-To see all available targets to run for a project, run:
-
-```sh
-npx nx show project dashboard
+## Install Dependencies
+```
+cd task-management
+npm install
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+## Environment Variables
+### API
+```
+# development
+./apps/api/.env.development
+# production
+./apps/api/.env.production
+# for local-only
+cp ./apps/api/.env-example ./apps/api/.env
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Add new projects
-
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-Use the plugin's generator to create new projects.
-
-To generate a new application, use:
-
-```sh
-npx nx g @nx/angular:app demo
+```
+### DASHBOARD
+```
+# dev
+./apps/dashboard/src/environments/environment.ts
+# prd
+./apps/dashboard/src/environments/environment.ts
 ```
 
-To generate a new library, use:
+## Database
+WIP: Until the moment, the api is only using SQLite.
+TODO: Setup Postgres
+TODO: Setup migrations
 
-```sh
-npx nx g @nx/angular:lib mylib
+## Running project
+### Development
+```
+# api
+nx run api:serve
+# dashboard
+nx run dashboard:serve
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+### Production
+```
+# api
+nx run api:build:production
+node dist/apps/api/main.js
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+# dashboard
+nx run dashboard:build:production
+# serve dist/apps/dashboard/browser using nginx or node server
+
+## exemple using npx serve
+## Don't do it in production
+npx serve dist/apps/dashboard/browser -s
+```
+
+# Architecture Overview
+
+## Project sctructure
+```
+task-management/
+├─ apps/
+│  ├── api/           # NestJS backend application
+│  └── dashboard/     # Angular frontend application
+└─ libs/
+   ├── data/          # Shared TypeScript interfaces & DTOs
+   └── rbac/          # Reusable RBAC logic
+```
+
+## ERD Diagram
+![erd diagram](./docs/erd-diagram.png)
+
+## Access Control Implementation
+This project enforces access control using role-based permissions 
+into organizational context. 
+
+### 🛂 Role-Based Permissions Table
+
+| Permission                     | Owner  | Admin | Viewer    |
+|--------------------------------|--------|-------|-----------|
+| `task:view`                    | ✅     | ✅    | ✅         |
+| `task:create`                  | ✅     | ✅    | ❌         |
+| `task:edit`                    | ✅     | ✅    | ❌         |
+| `task:delete`                  | ✅     | ✅    | ❌         |
+| `organization:view`            | ✅     | ✅    | ✅         |
+| `organization:edit`            | ✅     | ❌    | ❌         |
+| `organization:delete`          | ✅     | ❌    | ❌         |
+| `sub_organization:create`      | ✅     | ❌    | ❌         |
+| `organization:invite`          | ✅     | ❌    | ❌         |
+
+### How permissions are checked
+When a resource or action is requested the system verify the user 
+permissions based on their role in the organization.
+
+Basically, given the resource references (organization id) and user identification (user id), the system check the table organization_users
+for and retrieve the user role.
+
+With the user role, the system check the `RolePermissionsMap` and compere with the required permission for that resource.
+
+The package `libs/rbac` offer the available roles (`RoleEnum`), permissions (`PermissionsEnum`) and a function to verify the role permission (`hasPermission(role: RoleEnum, permission: PermissionsEnum): boolean`)
+
+## Api documentation
+### [Public] POST /api/auth/login
+#### Body
+```
+{
+  "email": "test1@test.com",
+  "password": "$trongPassword123"
+}
+
+```
+#### Response
+```
+# HTTP 200
+{
+    "sub": 1,
+    "id": 1,
+    "email": "test1@test.com",
+    "name": "Tester 1",
+    "access_token": "jwt-token"
+}
+```
+#### Example
+```
+curl --location 'http://localhost:3000/api/auth/login' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "email": "test1@test.com",
+  "password": "$trongPassword123"
+}'
+```
+### [Public] POST /api/auth/register
+#### Body
+```
+{
+  "email": "test2@test.com",
+  "name": "Tester 2",
+  "password": "$trongPassword123"
+}
+```
+#### Response
+```
+# HTTP 201
+{
+  "id": 2,
+  "email": "test2@test.com",
+  "name": "Tester 2",
+  "createdAt": "2025-08-09T14:21:05.000Z",
+  "updatedAt": "2025-08-09T14:21:05.000Z"
+}
+```
+### [Protected] GET /api/users
+#### Response
+```
+# HTTP 200
+[
+  {
+    "id": 1,
+    "email": "test1@test.com",
+    "name": "Tester 1"
+  },
+  {
+    "id": 2,
+    "email": "test2@test.com",
+    "name": "Tester 2"
+  }
+]
+```
+#### Example
+```
+curl --location 'http://localhost:3000/api/users' \
+--header 'Authorization: Bearer <access_token>'
+```
+### [Protected] POST /api/organizations
+#### Body
+```
+{
+  "name": "Sub Org 1",
+  "parentId": 1
+}
+```
+#### Response
+```
+{
+    "name": "Sub Org 1",
+    "members": [
+        {
+            "userId": 1,
+            "role": "owner",
+            "organizationId": 2
+        }
+    ],
+    "subOrganizations": [],
+    "parent": {
+        "id": 1,
+        "createdAt": "2025-08-09T14:22:44.000Z",
+        "updatedAt": "2025-08-09T14:22:44.000Z",
+        "name": "Org 1",
+        "parent": null,
+        "members": [
+            {
+                "userId": 1,
+                "organizationId": 1,
+                "role": "owner",
+                "user": {
+                    "id": 1,
+                    "createdAt": "2025-08-09T14:20:59.000Z",
+                    "updatedAt": "2025-08-09T14:20:59.000Z",
+                    "name": "Tester 1",
+                    "email": "test1@test.com"
+                }
+            }
+        ],
+        "subOrganizations": []
+    },
+    "id": 2,
+    "createdAt": "2025-08-09T14:23:10.000Z",
+    "updatedAt": "2025-08-09T14:23:10.000Z"
+}
+```
+#### Exemple
+```
+curl --location 'http://localhost:3000/api/organizations' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <access_token>' \
+--data '{
+  "name": "Sub Org 1",
+  "parentId": 1
+}'
+```
+### [Protected] PUT /api/organizations/:id
+#### Body
+```
+{
+  "name": "test organization 1"
+}
+```
+#### Response
+```
+{
+  "name": "Sub Org 1",
+  "members": [
+    {
+      "userId": 1,
+      "role": "owner",
+      "organizationId": 2
+    }
+  ],
+  "subOrganizations": [],
+  "parent": {
+    "id": 1,
+    "createdAt": "2025-08-09T14:22:44.000Z",
+    "updatedAt": "2025-08-09T14:22:44.000Z",
+    "name": "Org 1",
+    "parent": null,
+    "members": [
+      {
+        "userId": 1,
+        "organizationId": 1,
+        "role": "owner",
+        "user": {
+          "id": 1,
+          "createdAt": "2025-08-09T14:20:59.000Z",
+          "updatedAt": "2025-08-09T14:20:59.000Z",
+          "name": "Tester 1",
+          "email": "test1@test.com"
+        }
+      }
+    ],
+    "subOrganizations": []
+  },
+  "id": 2,
+  "createdAt": "2025-08-09T14:23:10.000Z",
+  "updatedAt": "2025-08-09T14:23:10.000Z"
+}
+```
+#### Exemple
+```
+curl --location --request PUT 'http://localhost:3000/api/organizations/5' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <access_token>' \
+--data '{
+  "name": "test organization 1"
+}'
+```
+### [Protected] GET /api/organizations/:id
+#### Response
+```
+{
+  "id": 1,
+  "createdAt": "2025-08-10T20:06:49.000Z",
+  "updatedAt": "2025-08-10T20:07:17.000Z",
+  "name": "Org 1",
+  "parent": null,
+  "members": [
+    {
+      "userId": 1,
+      "organizationId": 1,
+      "role": "owner",
+      "user": {
+        "id": 1,
+        "createdAt": "2025-08-10T20:05:02.000Z",
+        "updatedAt": "2025-08-10T20:05:02.000Z",
+        "name": "Tester 1",
+        "email": "test1@test.com"
+      }
+    },
+    {
+      "userId": 3,
+      "organizationId": 1,
+      "role": "viewer",
+      "user": {
+        "id": 3,
+        "createdAt": "2025-08-10T20:06:31.000Z",
+        "updatedAt": "2025-08-10T20:06:31.000Z",
+        "name": "Tester 2",
+        "email": "test2@test.com"
+      }
+    }
+  ],
+  "subOrganizations": [
+    {
+      "id": 2,
+      "createdAt": "2025-08-10T20:07:01.000Z",
+      "updatedAt": "2025-08-10T20:07:01.000Z",
+      "name": "SubOrg 1"
+    }
+  ]
+}
+```
+#### Example
+```
+curl --location 'http://localhost:3000/api/organizations/1' \
+--header 'Authorization: Bearer <access_token>'
+```
+### [Protected] DELETE /api/organizations/:id
+#### Response
+```
+HTTP 204 No Content
+```
+### Example
+```
+curl --location --request DELETE 'http://localhost:3000/api/organizations/5' \
+--header 'Authorization: Bearer <access_token>'
+```
+### [Protected] PUT /api/organizations/:orgId/members/:userId
+#### Body
+```
+{
+  "role": "viewer"
+}
+```
+#### Response
+```
+HTTP 200 OK
+```
+### Example
+```
+curl --location --request PUT 'http://localhost:3000/api/organizations/1/members/2' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <access_token>' \
+--data '{
+  "role": "viewer"
+}'
+```
+### [Protected] DELETE /api/organizations/:orgId/members/:userId
+#### Response
+```
+HTTP 204 No Content
+```
+#### Example
+```
+curl --location --request DELETE 'http://localhost:3000/api/organizations/3/members/3' \
+--header 'Authorization: Bearer <access_token>'
+
+```
+###[Protected] POST /api/organizations/:orgId/tasks
+#### Request Body
+```
+{
+  "title": "task 1",
+  "description": "anything"
+}
+```
+#### Response
+```
+{
+  "id": 1,
+  "title": "task 1",
+  "description": "anything",
+  "status": "todo",
+  "createdAt": "2025-08-10T20:31:55.000Z",
+  "updatedAt": "2025-08-10T20:31:55.000Z",
+  "organization": {
+    "id": 1,
+    "name": "Org 1",
+    "members": [...],
+    "subOrganizations": [...]
+  }
+}
+```
+### [Protected] GET /api/organizations/:orgId/tasks
+#### Response
+```
+[
+    {
+        "id": 1,
+        "createdAt": "2025-08-10T20:31:55.000Z",
+        "updatedAt": "2025-08-10T20:31:55.000Z",
+        "title": "task 1",
+        "description": "anything",
+        "status": "todo"
+    }
+]
+```
+#### Example
+```
+curl --location 'http://localhost:3000/api/organizations/1/tasks' \
+--header 'Authorization: Bearer <access_token>'
+```
+### [Protected] GET /api/organizations/:orgId/tasks/:taskId
+#### Response
+```
+{
+  "id": 1,
+  "createdAt": "2025-08-09T15:00:17.000Z",
+  "updatedAt": "2025-08-09T15:00:17.000Z",
+  "title": "task 1",
+  "description": "anything",
+  "status": "todo"
+}
+```
+#### Example
+```
+curl --location 'http://localhost:3000/api/organizations/1/tasks/1' \
+--header 'Authorization: Bearer <access_token>'
+```
+### [Protected] PUT /api/organizations/:orgId/tasks/:taskId
+#### Body
+```
+{
+  "title": "test",
+  "description": "new description",
+  "status": "in-progress"
+}
+```
+#### Response
+```
+{
+  "id": 1,
+  "createdAt": "2025-08-09T15:00:17.000Z",
+  "updatedAt": "2025-08-09T15:01:38.000Z",
+  "title": "test",
+  "description": "new description",
+  "status": "in-progress"
+}
+```
+#### Example
+```
+curl --location --request PUT 'http://localhost:3000/api/organizations/1/tasks/1' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <access_token>' \
+--data '{
+  "title": "test",
+  "description": "new description",
+  "status": "in-progress"
+}'
+```
+### [Protected] DELETE /api/tasks/:taskId
+#### Response
+```
+HTTP 204
+```
+#### Example
+```
+curl --location --request DELETE 'http://localhost:3000/api/tasks/2' \
+--header 'Authorization: Bearer <access_token>'
+```
+
+## Future Considerations
+### Implement JWT Refresh Tokens
+Allows reduce the expiration time of the access tokens, turn it short-lived, increasing system security
+
+### Prevent againts XSS - Access token storage place
+Remove access token from localstorage and keep it in memory or in the cookie using HttpOnly + Secure properties.
+
+### Configure HTTPS and CORS
+Confirm if the domain of the request is safe.
+
+### Configure CSRF tokens to prevent CSRF attacks.
+
+### Scaling Permissions
+Since my RBAC implementation is hard-coded, it will demand modifications on the code to include more permissions, roles or modify its relations.
+
+A solution for that would be turn Role and Permission data entities and save it on database.
+
+### RBAC caching
+Implement caching for RBAC permissions on Redis to reduce database queries
 
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
 
-## Install Nx Console
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
 
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/getting-started/tutorials/angular-monorepo-tutorial?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
