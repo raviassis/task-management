@@ -29,6 +29,9 @@ async function bootstrap() {
   Logger.log(
     `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`
   );
+  Logger.log(
+    `JWT_SECRET ` + process.env.JWT_SECRET
+  );
 }
 
 bootstrap();

@@ -9,7 +9,7 @@ export class Task extends BaseEntity {
   title: string;
   @Column()
   description: string;
-  @Column({ enum: TaskStatusEnum, default: TaskStatusEnum.TODO })
+  @Column({ type: 'text', enum: TaskStatusEnum, default: TaskStatusEnum.TODO })
   status: TaskStatusEnum;
   @ManyToOne(() => Organization)
   organization: Organization;
