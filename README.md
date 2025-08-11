@@ -498,6 +498,26 @@ curl --location --request DELETE 'http://localhost:3000/api/tasks/2' \
 
 ## Future Considerations
 ### Implement JWT Refresh Tokens
-Allows reduce the expiration time of the access tokens, turn it short-lived, increasing security
+Allows reduce the expiration time of the access tokens, turn it short-lived, increasing system security
+
+### Prevent againts XSS - Access token storage place
+Remove access token from localstorage and keep it in memory or in the cookie using HttpOnly + Secure properties.
+
+### Configure HTTPS and CORS
+Confirm if the domain of the request is safe.
+
+### Configure CSRF tokens to prevent CSRF attacks.
+
+### Scaling Permissions
+Since my RBAC implementation is hard-coded, it will demand modifications on the code to include more permissions, roles or modify its relations.
+
+A solution for that would be turn Role and Permission data entities and save it on database.
+
+### RBAC caching
+Implement caching for RBAC permissions on Redis to reduce database queries
+
+
+
+
 
 
